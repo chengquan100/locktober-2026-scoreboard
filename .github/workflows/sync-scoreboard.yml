@@ -1,9 +1,11 @@
 name: Sync scoreboard data
 
-# PRD 11 §4.1：cron 分钟避开 :00 / :30 高峰；必须带 workflow_dispatch，否则出问题只能干等 30 分钟。
+# 每小时第 17 分跑一次（避开 :00 / :30 高峰，约 744 次/月）。
+# 刻意保持低频：负担与收益成比例是 Actions 附加条款的判据之一，一小时延迟对榜单完全够用。
+# 必须带 workflow_dispatch，否则出问题只能干等一小时。
 on:
   schedule:
-    - cron: '17,47 * * * *'
+    - cron: '17 * * * *'
       timezone: 'Asia/Taipei' # GitHub Actions 自 2026-03 起支持按条目指定 IANA 时区
   workflow_dispatch:
     inputs:
