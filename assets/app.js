@@ -15,7 +15,7 @@ import {
   tierFor,
   tierInk,
 } from './config.js';
-import { LANGS, detectLang, localeOf, raw, translate } from './i18n.js';
+import { detectLang, localeOf, raw, translate } from './i18n.js';
 
 // ===========================================================================
 // 状态
@@ -29,7 +29,6 @@ const state = {
   showNumbers: readBool(STORAGE.showNumbers, false),
   query: '',
   route: parseRoute(),
-  clock: null,
   slugIndex: new Map(),
 };
 
@@ -93,11 +92,6 @@ function organizerParts(date) {
     dow: shifted.getUTCDay(),
     date: shifted.toISOString().slice(0, 10),
   };
-}
-
-function organizerIso(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d) - OFFSET_MS + (23 * 3600 + 59 * 60 + 59) * 1000);
 }
 
 function phaseNow(now) {
@@ -653,7 +647,6 @@ function render() {
 
   el.view.innerHTML = html;
   applyGridBehaviors();
-  startLiveClocks();
 }
 
 /** 移动端默认定位到最近的日期列（PRD 11 §7.2） */
@@ -663,28 +656,6 @@ function applyGridBehaviors({ autoScroll = true } = {}) {
   if (scroller.scrollWidth > scroller.clientWidth + 8) {
     scroller.scrollLeft = scroller.scrollWidth;
   }
-}
-
-let clockTimer = null;
-function startLiveClocks() {
-  if (clockTimer) clearInterval(clockTimer);
-  const nodes = el.view.querySelectorAll('[data-live]');
-  if (!nodes.length) return;
-  const tick = () => {
-    const now = clock.now();
-    const { phase } = phaseNow(now);
-    if (phase === 'ended') return;
-    el.view.querySelectorAll('.clock').forEach((node) => {
-      const value = node.querySelector('[data-live]');
-      if (!value) return;
-      const label = node.dataset.clock ?? '';
-      if (label === t('hero.clock.toStart')) value.textContent = countdownText(new Date(ACTIVITY.startAt) - now);
-      else if (label === t('hero.clock.toEnd')) value.textContent = countdownText(new Date(ACTIVITY.endAt) - now);
-      else if (label === t('hero.clock.settle')) value.textContent = countdownText(Math.max(0, organizerIso(organizerParts(now).date) - now));
-    });
-  };
-  tick();
-  clockTimer = setInterval(tick, 1000);
 }
 
 // ===========================================================================
