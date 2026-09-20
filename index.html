@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F2F2F2">
+<title>Locktober 2026 · 公开计分板</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23FFC832'/%3E%3Cpath d='M16 7.5c3.2 3 5.2 5.6 5.2 8.6a5.2 5.2 0 0 1-10.4 0c0-3 2-5.6 5.2-8.6z' fill='%231A1A1A'/%3E%3Ccircle cx='16' cy='17.5' r='2.2' fill='%23FFC832'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main" data-skip>跳到主要内容</a>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="#/" style="text-decoration:none;color:inherit">
+      <span class="brand__mark" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
+          <rect x="5" y="14" width="22" height="4" rx="2" fill="#fff"/>
+          <rect x="5" y="6" width="14" height="4" rx="2" fill="#FFD9C7"/>
+          <rect x="5" y="22" width="9" height="4" rx="2" fill="#FFD9C7"/>
+        </svg>
+      </span>
+      <span class="brand__text">
+        <span class="brand__title">Locktober 2026</span>
+        <span class="brand__sub" data-brand-sub>公开计分板</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="主导航" data-nav></nav>
+
+    <div class="langpick" role="group" aria-label="语言">
+      <button type="button" data-lang-btn="zh-Hans" aria-pressed="true">简</button>
+      <button type="button" data-lang-btn="zh-Hant" aria-pressed="false">繁</button>
+      <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" data-view-host>
+  <div class="view">
+    <section class="card state">
+      <p class="skeleton-line">&nbsp;</p>
+    </section>
+  </div>
+</main>
+
+<div class="tip" role="tooltip" data-tip data-show="0"></div>
+<div class="toast" role="status" aria-live="polite" data-toast data-show="0"></div>
+
+<noscript>
+  <div style="max-width:640px;margin:40px auto;padding:0 16px;font-family:system-ui,sans-serif">
+    <h1 style="font-size:18px">需要启用 JavaScript</h1>
+    <p style="color:#5C5C5C;font-size:13px;margin-top:8px">
+      本页的所有视图都在浏览器里实时渲染（PRD 11 §6：一份 index.html + 一份 data.json）。
+      数据本身可以直接读取：<a href="./data/data.json">data/data.json</a>。
+    </p>
+  </div>
+</noscript>
+
+<script type="module" src="./assets/app.js"></script>
+</body>
+</html>

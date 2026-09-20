@@ -1,0 +1,84 @@
+name: Sync scoreboard data
+
+# PRD 11 §4.1：cron 分钟避开 :00 / :30 高峰；必须带 workflow_dispatch，否则出问题只能干等 30 分钟。
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+      timezone: 'Asia/Taipei' # GitHub Actions 自 2026-03 起支持按条目指定 IANA 时区
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: '回填指定日期（YYYY-MM-DD，可留空；管线无状态，重跑即回填）'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: scoreboard-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 只有「解析不出来」才算故障（FR-SB-OPS-01）
+      - name: Pull CSV and rebuild data.json
+        id: sync
+        env:
+          CSV_URL: ${{ vars.SCOREBOARD_CSV_URL }}
+          CSV_STRATEGY: ${{ vars.SCOREBOARD_CSV_STRATEGY || 'pub' }}
+        run: node tools/sync-scoreboard.mjs --out data/data.json
+
+      - name: Commit when content actually changed
+        id: commit
+        if: success()
+        run: |
+          if [[ -z "$(git status --porcelain data/data.json)" ]]; then
+            echo "内容无变化，不提交（幂等，FR-SB-03）"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/data.json
+          git commit -m "chore(data): sync scoreboard $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # 同一原因只开一个 Issue（去重）
+      - name: Open an issue on parse failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '[scoreboard-sync] 解析失败，已沿用上一版产物';
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'scoreboard-sync',
+            });
+            if (existing.some((i) => i.title === title)) {
+              core.info('同类 Issue 已存在，跳过');
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              labels: ['scoreboard-sync'],
+              body: [
+                `运行：${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                '',
+                '站点仍展示上一版产物，未产生破坏性提交。请检查：',
+                '- `SCOREBOARD_CSV_URL` 是否仍然有效（发布可能被重新生成）',
+                '- Sheet 的表头行是否仍以 `ID` 开头',
+                '- 日期列是否被改回了不带年份的格式',
+              ].join('\n'),
+            });
